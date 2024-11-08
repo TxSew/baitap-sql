@@ -38,3 +38,60 @@ BEGIN
         TotalRevenue DESC       -- và theo tổng doanh thu
 END;
 GO
+
+
+--- Procedure Thêm Đơn Hàng Mới
+
+CREATE PROCEDURE AddNewOrder
+    @CustomerID INT,
+    @OrderDate DATE,
+    @Status NVARCHAR(50),
+    @OrderDetails TABLE (BookID INT, Quantity INT, UnitPrice DECIMAL(10, 2))
+AS
+BEGIN
+    DECLARE @OrderID INT;
+    
+    -- Thêm đơn hàng vào bảng Orders
+    INSERT INTO Orders (CustomerID, OrderDate, Status, TotalAmount)
+    VALUES (@CustomerID, @OrderDate, @Status, 0);
+
+    SET @OrderID = SCOPE_IDENTITY();  -- Lấy OrderID vừa tạo
+    
+    -- Thêm từng chi tiết đơn hàng
+    DECLARE @TotalAmount DECIMAL(10, 2) = 0;
+    
+    INSERT INTO OrderDetails (OrderID, BookID, Quantity, UnitPrice)
+    SELECT @OrderID, BookID, Quantity, UnitPrice FROM @OrderDetails;
+
+    -- Cập nhật tổng tiền đơn hàng
+    SELECT @TotalAmount = SUM(Quantity * UnitPrice) FROM @OrderDetails;
+    UPDATE Orders SET TotalAmount = @TotalAmount WHERE OrderID = @OrderID;
+END;
+GO
+
+
+-- Procedure Lấy Danh Sách Sách Theo Thể Loại Hoặc Tác Giả
+
+CREATE PROCEDURE GetBooksByGenreOrAuthor
+    @GenreID INT = NULL,
+    @AuthorID INT = NULL
+AS
+BEGIN
+    -- Lấy danh sách sách theo thể loại hoặc tác giả
+    SELECT 
+        Books.BookID, 
+        Books.Title, 
+        Books.Description, 
+        Books.Price, 
+        Books.Stock,
+        Genres.GenreName,
+        Authors.Name AS AuthorName
+    FROM Books
+    LEFT JOIN Genres ON Books.GenreID = Genres.GenreID
+    LEFT JOIN Authors ON Books.AuthorID = Authors.AuthorID
+    WHERE 
+        (Books.GenreID = @GenreID OR @GenreID IS NULL) AND
+        (Books.AuthorID = @AuthorID OR @AuthorID IS NULL);
+END;
+GO
+
