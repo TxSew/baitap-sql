@@ -70,4 +70,31 @@ GROUP BY
 ORDER BY 
     OrderYear, OrderMonth;
 
+-- bai 6: Thống kê số lượng sách theo từng nhà xuất bản
+--Yêu cầu: Đếm số lượng sách mà mỗi nhà xuất bản đã phát hành.
+SELECT 
+    p.PublisherName,
+    COUNT(bp.BookID) AS BookCount
+FROM 
+    Publishers p
+JOIN 
+    BookPublishers bp ON p.PublisherID = bp.PublisherID
+GROUP BY 
+    p.PublisherName
+ORDER BY 
+    BookCount DESC;
+
+--bai 7:  Liệt kê tất cả sách chưa có đánh giá
+--Yêu cầu: Tìm danh sách tất cả các sách chưa có bất kỳ đánh giá nào trong bảng Reviews.
+SELECT 
+    b.Title AS BookTitle
+FROM 
+    Books b
+LEFT JOIN 
+    Reviews r ON b.BookID = r.BookID
+WHERE 
+    r.ReviewID IS NULL;
+
+
+
 
